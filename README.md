@@ -63,7 +63,7 @@ Existing assets are never overwritten. If an asset with the same name is already
 After moving the releases proxy semver pointer to the approved release, wait until the proxy serves both MSIs at `https://releases.stackql.io/stackql/<version>/stackql_windows_<architecture>.msi` (`amd64` and `arm64`), then run:
 
 ```powershell
-.\publish-prep.ps1 0.11.669
+.\publish-prep.ps1 0.12.824
 ```
 
 The version can be given with or without the leading `v`. The script downloads both MSIs from version-specific proxy URLs and confirms that each `ProductVersion` matches the version given (nothing is installed). If either download or version check fails, package files remain unchanged. It then updates:

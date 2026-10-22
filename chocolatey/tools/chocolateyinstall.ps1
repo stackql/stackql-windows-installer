@@ -1,10 +1,10 @@
 $ErrorActionPreference = 'Stop';
 $toolsDir = "$(Split-Path -parent $MyInvocation.MyCommand.Definition)"
-$urlAmd64 = 'https://releases.stackql.io/stackql/0.12.778/stackql_windows_amd64.msi'
-$checksumAmd64 = '43ef01623569921a043f4d39c702f89e99ae1ebc6eede84a708621b1c35d8a10'
+$urlAmd64 = 'https://releases.stackql.io/stackql/0.12.824/stackql_windows_amd64.msi'
+$checksumAmd64 = '4456b40670020c2a9ae5ea62cc72f549fcdf59c13ffb3376c1e13bd531fea2b1'
 # Populated by publish-prep.ps1 for the first ARM64 release.
-$urlArm64 = 'https://releases.stackql.io/stackql/0.12.778/stackql_windows_arm64.msi'
-$checksumArm64 = 'c1ca5c4ddfa18c39aa1fd44b39a71da9cec9d01539e59b63d4998f56ef714a7a'
+$urlArm64 = 'https://releases.stackql.io/stackql/0.12.824/stackql_windows_arm64.msi'
+$checksumArm64 = 'd4d167865fbc1d3e2fd41848bbcb372869c55445c269cf7b720bbe7e7263eb2c'
 
 if (-not [Environment]::Is64BitOperatingSystem) {
     throw 'StackQL requires AMD64 or ARM64 Windows.'

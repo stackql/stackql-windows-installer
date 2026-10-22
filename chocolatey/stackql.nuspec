@@ -19,8 +19,8 @@ This is a nuspec. It mostly adheres to https://docs.nuget.org/create/Nuspec-Refe
 <package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
   <metadata>
     <id>stackql</id>
-    <version>0.12.778</version>
-    <releaseNotes>StackQL v0.12.778 Windows release. Native AMD64 and ARM64 packages.</releaseNotes>
+    <version>0.12.824</version>
+    <releaseNotes>StackQL v0.12.824 Windows release. Native AMD64 and ARM64 packages.</releaseNotes>
     <packageSourceUrl>https://github.com/stackql/stackql-windows-installer</packageSourceUrl>
     <owners>stackql</owners>
     <title>stackql (Install)</title>
