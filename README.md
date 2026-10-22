@@ -54,9 +54,9 @@ Running `.\build.ps1` without `true` produces unsigned packages. These are fine 
 .\release.ps1
 ```
 
-The script reads each MSI's `ProductVersion` and the file version of `stackql.exe` inside each ZIP (nothing is installed), checks that all versions match and all signatures are valid, then uploads the four unversioned filenames as assets to the `stackql/stackql` release tagged `v<version>`. The release must already exist. Uploading does not move the releases proxy semver pointer; promotion follows the separate package UAT process.
+The script reads each MSI's `ProductVersion` and the file version of `stackql.exe` inside each ZIP (nothing is installed), checks that all versions match and all signatures are valid, writes a `<asset>.sha256` sidecar (sha256sum format) for each package, then uploads the four unversioned filenames and their sidecars as assets to the `stackql/stackql` release tagged `v<version>` and verifies the SHA-256 digest GitHub recorded for each attached package against the local one. The release must already exist. Uploading does not move the releases proxy semver pointer; promotion follows the separate package UAT process.
 
-Existing assets are never overwritten. If an asset with the same name is already on the release it is skipped with a warning. To replace an asset, delete it from the release on GitHub first and run the script again. Pass `-AllowUnsigned` to upload unsigned packages.
+Existing assets are never overwritten. If an asset with the same name is already on the release it is skipped with a warning, and the script fails if the attached bytes differ from the local package. A sidecar is only uploaded when the attached package is byte-identical to the local one. To replace an asset, delete it and its sidecar from the release on GitHub first and run the script again. Pass `-AllowUnsigned` to upload unsigned packages.
 
 ### Step 3: prepare the Chocolatey package
 
@@ -115,7 +115,7 @@ choco uninstall stackql
 | Path | Purpose |
 | --- | --- |
 | `build.ps1` | Step 1: builds and signs the MSI and ZIP |
-| `release.ps1` | Step 2: uploads the MSI and ZIP to the GitHub release |
+| `release.ps1` | Step 2: uploads the MSI and ZIP assets and their `.sha256` sidecars to the GitHub release |
 | `publish-prep.ps1` | Step 3: updates the Chocolatey package for a release |
 | `stackql.wxs`, `en-us.wxl` | WiX source for the MSI |
 | `inc\` | Files bundled into the MSI: EULA, icon, installer images, command shell launcher |
