@@ -81,7 +81,7 @@ Review the changes, then commit and push to `main`:
 
 ```powershell
 git add chocolatey
-git commit -m "v0.11.669"
+git commit -m "v0.12.824"
 git push origin main
 ```
 
