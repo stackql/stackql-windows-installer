@@ -2,7 +2,7 @@
 
 Builds, releases and publishes the StackQL packages for Windows:
 
-- `stackql_windows_amd64.msi` and `stackql_windows_arm64.msi` - Authenticode signed MSI installers
+- `stackql_windows_amd64.msi` and `stackql_windows_arm64.msi` - Authenticode signed MSI installers for `stackql.exe` and the [StackQL Workbench](https://github.com/stackql/stackql-workbench) desktop app
 - `stackql_windows_amd64.zip` and `stackql_windows_arm64.zip` - ZIPs containing the signed `stackql.exe`
 - the `stackql` Chocolatey package, which selects the native AMD64 or ARM64 MSI from the releases proxy
 
@@ -13,6 +13,7 @@ This repo replaces the former `stackql-msi` and `chocolatey-install` repos.
 - Windows with PowerShell 5.1 or later
 - [WiX Toolset](https://wixtoolset.org/) v4 or later (`wix.exe` on the PATH) with the UI extension installed: `wix extension add -g WixToolset.UI.wixext`
 - [GitHub CLI](https://cli.github.com/) authenticated with access to the `stackql` org (`gh auth login`)
+- Internet access to GitHub, where `build.ps1` gets its inputs: `api.github.com` for the StackQL build artifacts, which redirects to `*.blob.core.windows.net`, and `github.com` for StackQL Workbench, which redirects to `release-assets.githubusercontent.com`
 - The hardware token holding the StackQL Studios code signing certificate, and the token client software (for example Thales SafeNet Authentication Client)
 - Chocolatey, only if you want to build or test the Chocolatey package locally
 
@@ -23,30 +24,41 @@ Two things to be aware of when building:
 
 ## Release flow
 
-The overall StackQL release is driven from the [stackql](https://github.com/stackql/stackql) repo: a tag is pushed, a GitHub release is created, and the signed platform packages are added to that release as assets. After package UAT, release availability is gated by moving the Cloudflare releases proxy semver pointer to the next release. GitHub draft releases are not used. All published release/download links and script download URLs use `releases.stackql.io`.
+The overall StackQL release is driven from the [stackql](https://github.com/stackql/stackql) repo: a tag is pushed, a GitHub release is created, and the signed platform packages are added to that release as assets. After package UAT, release availability is gated by moving the Cloudflare releases proxy semver pointer to the next release. GitHub draft releases are not used. All published release/download links and script download URLs use `releases.stackql.io`. The exceptions are the build inputs, which `build.ps1` downloads from GitHub: the StackQL build artifacts and StackQL Workbench.
 
 The Windows part of that flow is the steps below. Run each script from the root of this repo.
 
 ### Before you start
 
-Save both unsigned Windows builds for the release as `downloaded\stackql_windows_amd64.zip` and `downloaded\stackql_windows_arm64.zip`. Both must be from the same release build. The `downloaded`, `bin` and `msi` directories are gitignored.
+The StackQL release `v<version>` must exist in `stackql/stackql`, created from a tag that points at the commit built by build `<build_number>` of the `Build` workflow on `main`. That run must have succeeded and its artifacts must not have expired. Choose the [StackQL Workbench release](https://github.com/stackql/stackql-workbench/releases) to bundle. Nothing is downloaded by hand: `build.ps1` downloads its inputs into `downloaded\` on every run. The `downloaded`, `bin` and `msi` directories are gitignored.
 
 ### Step 1: build and sign the MSI and ZIP
 
 ```powershell
-.\build.ps1 true
+.\build.ps1 v1.1.959 v0.1.0 true
 ```
 
-Insert the hardware token before running. The script pauses so you can confirm the token is inserted, then makes four separate signing calls in this order: AMD64 EXE, ARM64 EXE, AMD64 MSI, ARM64 MSI. Expect one token password prompt per call when password caching or single logon is disabled in the token client; the client controls the prompts. See [SafeNet single logon settings](https://www.sectigo.com/knowledge-base/detail/enable-safenet-single-log-on-for-document-or-code-signing). Enter the password carefully: the token is locked out after more than 3 incorrect attempts.
+The arguments are the StackQL release, the StackQL Workbench release, and `true` to sign. Both releases can be given with or without the leading `v`. Leave out `true` to build unsigned packages.
 
-The script extracts both ZIPs into `bin\<architecture>\`, reads the shared version from the AMD64 executable, and stamps both executables before signing either. It then signs both EXEs, builds and signs the AMD64 MSI, creates the AMD64 ZIP, builds and signs the ARM64 MSI, and creates the ARM64 ZIP. It writes the outputs to `msi\`:
+Before the pause for the token, the script:
+
+1. checks that release `v1.1.959` exists in `stackql/stackql`, that build `959` of the `Build` workflow on `main` succeeded, and that the tag points at the commit it built
+2. checks that the StackQL Workbench release has both Windows executables and their `.sha256` files
+3. downloads the unsigned `stackql_windows_amd64` and `stackql_windows_arm64` artifact zips from that run as `downloaded\stackql_windows_<architecture>.zip`, and checks each against the size and SHA-256 digest GitHub recorded
+4. downloads `stackql-workbench_windows_amd64.exe`, `stackql-workbench_windows_arm64.exe` and their `.sha256` files into `downloaded\`, and checks each executable's SHA-256 checksum, processor architecture and file version against the release
+
+It stops at the first failed check.
+
+Insert the hardware token before running. The script pauses so you can confirm the token is inserted, then makes four separate signing calls in this order: AMD64 EXEs, ARM64 EXEs, AMD64 MSI, ARM64 MSI. Each EXE call signs `stackql.exe` and `stackql-workbench.exe` for that architecture. Expect one token password prompt per call when password caching or single logon is disabled in the token client; the client controls the prompts. See [SafeNet single logon settings](https://www.sectigo.com/knowledge-base/detail/enable-safenet-single-log-on-for-document-or-code-signing). Enter the password carefully: the token is locked out after more than 3 incorrect attempts.
+
+The script extracts both ZIPs into `bin\<architecture>\`, copies each Workbench executable there as `stackql-workbench.exe`, reads the shared version from the AMD64 `stackql.exe` and stops if it is not the StackQL release version, and stamps both `stackql.exe` files before signing either. The Workbench is not stamped: it carries its own version and icon. The script then signs the EXEs, builds and signs the AMD64 MSI, creates the AMD64 ZIP, builds and signs the ARM64 MSI, and creates the ARM64 ZIP. Each MSI installs `stackql.exe` and `stackql-workbench.exe` side by side, with a StackQL Workbench shortcut in the Start Menu. Each ZIP contains `stackql.exe` only. It writes the outputs to `msi\`:
 
 - `stackql_<version>_windows_amd64.msi` and `stackql_windows_amd64.msi`
 - `stackql_<version>_windows_amd64.zip` and `stackql_windows_amd64.zip`
 - `stackql_<version>_windows_arm64.msi` and `stackql_windows_arm64.msi`
 - `stackql_<version>_windows_arm64.zip` and `stackql_windows_arm64.zip`
 
-Running `.\build.ps1` without `true` produces unsigned packages. These are fine for local testing but `release.ps1` will refuse to upload them.
+Running `build.ps1` without `true`, for example `.\build.ps1 v1.1.959 v0.1.0`, produces unsigned packages. These are fine for local testing but `release.ps1` will refuse to upload them.
 
 ### Step 2: upload the release assets
 
@@ -54,7 +66,7 @@ Running `.\build.ps1` without `true` produces unsigned packages. These are fine 
 .\release.ps1
 ```
 
-The script reads each MSI's `ProductVersion` and the file version of `stackql.exe` inside each ZIP (nothing is installed), checks that all versions match and all signatures are valid, writes a `<asset>.sha256` sidecar (sha256sum format) for each package, then uploads the four unversioned filenames and their sidecars as assets to the `stackql/stackql` release tagged `v<version>` and verifies the SHA-256 digest GitHub recorded for each attached package against the local one. The release must already exist. Uploading does not move the releases proxy semver pointer; promotion follows the separate package UAT process.
+The script reads each MSI's `ProductVersion` and the file version of `stackql.exe` inside each ZIP (nothing is installed), checks that all versions match and all signatures are valid, writes a `<asset>.sha256` sidecar (sha256sum format) for each package, then uploads the four unversioned filenames and their sidecars as assets to the `stackql/stackql` release tagged `v<version>` and verifies the SHA-256 digest GitHub recorded for each attached package against the local one. The release must already exist. Uploading does not move the releases proxy semver pointer; promotion follows the separate package UAT process. StackQL Workbench has its own version number and is not part of these checks.
 
 Existing assets are never overwritten. If an asset with the same name is already on the release it is skipped with a warning, and the script fails if the attached bytes differ from the local package. A sidecar is only uploaded when the attached package is byte-identical to the local one. To replace an asset, delete it and its sidecar from the release on GitHub first and run the script again. Pass `-AllowUnsigned` to upload unsigned packages.
 
@@ -63,7 +75,7 @@ Existing assets are never overwritten. If an asset with the same name is already
 After moving the releases proxy semver pointer to the approved release, wait until the proxy serves both MSIs at `https://releases.stackql.io/stackql/<version>/stackql_windows_<architecture>.msi` (`amd64` and `arm64`), then run:
 
 ```powershell
-.\publish-prep.ps1 0.12.824
+.\publish-prep.ps1 1.0.888
 ```
 
 The version can be given with or without the leading `v`. The script downloads both MSIs from version-specific proxy URLs and confirms that each `ProductVersion` matches the version given (nothing is installed). If either download or version check fails, package files remain unchanged. It then updates:
@@ -81,7 +93,7 @@ Review the changes, then commit and push to `main`:
 
 ```powershell
 git add chocolatey
-git commit -m "v0.12.824"
+git commit -m "v1.0.888"
 git push origin main
 ```
 
@@ -114,7 +126,7 @@ choco uninstall stackql
 
 | Path | Purpose |
 | --- | --- |
-| `build.ps1` | Step 1: builds and signs the MSI and ZIP |
+| `build.ps1` | Step 1: downloads the StackQL build and StackQL Workbench, then builds and signs the MSI and ZIP |
 | `release.ps1` | Step 2: uploads the MSI and ZIP assets and their `.sha256` sidecars to the GitHub release |
 | `publish-prep.ps1` | Step 3: updates the Chocolatey package for a release |
 | `stackql.wxs`, `en-us.wxl` | WiX source for the MSI |

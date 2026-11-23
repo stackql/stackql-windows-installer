@@ -184,7 +184,7 @@ if (-not $allSigned) {
     if ($AllowUnsigned) {
         Write-Warning "Continuing with unsigned files because -AllowUnsigned was specified"
     } else {
-        throw "Signature check failed. Re-run '.\build.ps1 true' to produce signed packages, or pass -AllowUnsigned to override."
+        throw "Signature check failed. Re-run '.\build.ps1 $tag <workbench release> true' to produce signed packages, or pass -AllowUnsigned to override."
     }
 }
 

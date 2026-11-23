@@ -10,6 +10,8 @@
 <?define ShellShortcutName = "StackQL Command Shell" ?>
 <?define DesktopShortcutName = "StackQL Shell" ?>
 <?define DesktopShortcutDesc = "StackQL Command Shell for Interacting with Cloud Providers" ?>
+<?define WorkbenchShortcutName = "StackQL Workbench" ?>
+<?define WorkbenchShortcutDesc = "Desktop query IDE and chat interface for StackQL" ?>
 
 <?if $(sys.BUILDARCH) = "arm64" ?>
     <?define ExeGuid = "CEC8A642-FC2C-472F-9276-1FE3991535F7" ?>
@@ -17,12 +19,16 @@
     <?define StartMenuGuid = "3DD2285A-1C68-47F6-BAA8-0514EC745947" ?>
     <?define DesktopGuid = "C20EBC16-A49A-46D2-90C2-6A7EFC54CCDD" ?>
     <?define PathGuid = "DCB7D146-5893-4714-BDEF-799B5AB89587" ?>
+    <?define WorkbenchGuid = "47AF5E6C-08DA-4E92-8583-230DA6F3817D" ?>
+    <?define WorkbenchStartMenuGuid = "C66C1C34-AF92-4330-A278-94500B77117E" ?>
 <?else?>
     <?define ExeGuid = "70D4E41A-B897-4974-883C-BC9EF7154953" ?>
     <?define CmdGuid = "1C33A770-808B-46F8-A2EA-19F32AACD225" ?>
     <?define StartMenuGuid = "BC1FDF0D-51DD-478E-9C21-6D23438C8F1E" ?>
     <?define DesktopGuid = "4B2E3D6F-8CDF-4B7B-8CFA-A403A3F2E72C" ?>
     <?define PathGuid = "E7D9A2E7-3F4D-47C6-9B7F-4EFBE2116778" ?>
+    <?define WorkbenchGuid = "21A3E835-ED8C-4293-8CCA-30B604D28251" ?>
+    <?define WorkbenchStartMenuGuid = "49F8123F-F857-4121-9313-09779776BD5A" ?>
 <?endif?>
 
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
@@ -62,6 +68,9 @@
                 <Component Id="stackql.cmd" Guid="$(var.CmdGuid)">
                     <File Id="stackql.cmd" Source="inc\StackQL Command Shell.cmd" KeyPath="yes" Checksum="yes" />
                 </Component>
+                <Component Id="stackql_workbench.exe" Guid="$(var.WorkbenchGuid)">
+                    <File Id="stackql_workbench.exe" Source="$(var.WorkbenchPath)" KeyPath="yes" Checksum="yes" />
+                </Component>
             </Directory>
         </StandardDirectory>
         
@@ -81,6 +90,20 @@
                                  Name="Installed" 
                                  Type="integer" 
                                  Value="1" 
+                                 KeyPath="yes" />
+                </Component>
+                <!-- No Icon: the shortcut shows the executable's own icon -->
+                <Component Id="WorkbenchShortcut" Guid="$(var.WorkbenchStartMenuGuid)">
+                    <Shortcut Id="WorkbenchStartMenuShortcut"
+                             Name="$(var.WorkbenchShortcutName)"
+                             Description="$(var.WorkbenchShortcutDesc)"
+                             Target="[#stackql_workbench.exe]"
+                             WorkingDirectory="APPLICATIONROOTDIRECTORY" />
+                    <RegistryValue Root="HKCU"
+                                 Key="Software\$(var.Company)\$(var.AppName)"
+                                 Name="WorkbenchInstalled"
+                                 Type="integer"
+                                 Value="1"
                                  KeyPath="yes" />
                 </Component>
             </Directory>
@@ -123,7 +146,9 @@
         <Feature Id="MainApplication" Title="Main Application" Level="1">
             <ComponentRef Id="stackql.exe" />
             <ComponentRef Id="stackql.cmd" />
+            <ComponentRef Id="stackql_workbench.exe" />
             <ComponentRef Id="ApplicationShortcut" />
+            <ComponentRef Id="WorkbenchShortcut" />
             <ComponentRef Id="DesktopShortcut" />
             <ComponentRef Id="UpdatePath" />
         </Feature>
