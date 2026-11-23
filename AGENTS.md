@@ -18,6 +18,7 @@ This repository builds and publishes the StackQL Windows MSI, ZIP containing `st
 - `downloaded/`, `bin/`, and `msi/` contain ignored build inputs and outputs. Keep generated packages out of source control. `build.ps1` clears the contents of `bin/` and `msi/`.
 - `build.ps1` takes the StackQL release, the StackQL Workbench release and an optional `true` to sign. On every run it downloads into `downloaded/` the unsigned `stackql_windows_<architecture>` artifacts from the `stackql/stackql` `Build` run for that release, and the StackQL Workbench executables and their `.sha256` files from the given `stackql/stackql-workbench` release. Preserve its release, run, tag commit, digest, checksum, processor architecture and version checks.
 - StackQL Workbench carries its own version and icon. Do not stamp it with `rcedit`, keep it out of the ZIPs, and keep the `release.ps1` version checks on `stackql.exe`.
+- The Workbench Start Menu and desktop shortcuts use `inc/stackql-workbench.ico`, the Workbench icon with the AI Allowance starburst in the upper right corner. The command shell shortcuts keep `inc/stackql.ico`.
 - The MSI adds nothing for WebView2 and creates no data folder. The Workbench checks for WebView2 itself, writes nothing to the install folder, and keeps its state per user, with providers in `%USERPROFILE%\.stackql`. Keep `cd $HOME` in the command shell launcher so the `stackql` command uses the same folder.
 
 ## Build and release

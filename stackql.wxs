@@ -21,6 +21,7 @@
     <?define PathGuid = "DCB7D146-5893-4714-BDEF-799B5AB89587" ?>
     <?define WorkbenchGuid = "47AF5E6C-08DA-4E92-8583-230DA6F3817D" ?>
     <?define WorkbenchStartMenuGuid = "C66C1C34-AF92-4330-A278-94500B77117E" ?>
+    <?define WorkbenchDesktopGuid = "0FCD8A23-75C8-4A8C-ABC6-D41B180FC3E9" ?>
 <?else?>
     <?define ExeGuid = "70D4E41A-B897-4974-883C-BC9EF7154953" ?>
     <?define CmdGuid = "1C33A770-808B-46F8-A2EA-19F32AACD225" ?>
@@ -29,6 +30,7 @@
     <?define PathGuid = "E7D9A2E7-3F4D-47C6-9B7F-4EFBE2116778" ?>
     <?define WorkbenchGuid = "21A3E835-ED8C-4293-8CCA-30B604D28251" ?>
     <?define WorkbenchStartMenuGuid = "49F8123F-F857-4121-9313-09779776BD5A" ?>
+    <?define WorkbenchDesktopGuid = "91BA1C46-3DB4-489B-85C6-E38BC8642C75" ?>
 <?endif?>
 
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
@@ -51,6 +53,8 @@
 
         <!-- Resources -->
         <Icon Id="stackql.ico" SourceFile="inc\stackql.ico" />
+        <!-- Workbench icon with the AI Allowance starburst in the upper right corner -->
+        <Icon Id="stackql_workbench.ico" SourceFile="inc\stackql-workbench.ico" />
         <Property Id="ARPPRODUCTICON" Value="stackql.ico" />
 
         <!-- WiX UI Configuration -->
@@ -92,12 +96,12 @@
                                  Value="1" 
                                  KeyPath="yes" />
                 </Component>
-                <!-- No Icon: the shortcut shows the executable's own icon -->
                 <Component Id="WorkbenchShortcut" Guid="$(var.WorkbenchStartMenuGuid)">
                     <Shortcut Id="WorkbenchStartMenuShortcut"
                              Name="$(var.WorkbenchShortcutName)"
                              Description="$(var.WorkbenchShortcutDesc)"
                              Target="[#stackql_workbench.exe]"
+                             Icon="stackql_workbench.ico"
                              WorkingDirectory="APPLICATIONROOTDIRECTORY" />
                     <RegistryValue Root="HKCU"
                                  Key="Software\$(var.Company)\$(var.AppName)"
@@ -127,6 +131,20 @@
                              WorkingDirectory="APPLICATIONROOTDIRECTORY" />
                     <RemoveFolder Id="MergeRedirectFolder" On="uninstall" />
                 </Component>
+                <Component Id="WorkbenchDesktopShortcut" Guid="$(var.WorkbenchDesktopGuid)">
+                    <RegistryValue Root="HKCU"
+                                 Key="Software\$(var.Company)\$(var.AppName)"
+                                 Name="WorkbenchDesktopShortcut"
+                                 Type="integer"
+                                 Value="1"
+                                 KeyPath="yes" />
+                    <Shortcut Id="WorkbenchDesktopSC"
+                             Name="$(var.WorkbenchShortcutName)"
+                             Description="$(var.WorkbenchShortcutDesc)"
+                             Target="[#stackql_workbench.exe]"
+                             Icon="stackql_workbench.ico"
+                             WorkingDirectory="APPLICATIONROOTDIRECTORY" />
+                </Component>
             </Directory>
         </StandardDirectory>
 
@@ -150,6 +168,7 @@
             <ComponentRef Id="ApplicationShortcut" />
             <ComponentRef Id="WorkbenchShortcut" />
             <ComponentRef Id="DesktopShortcut" />
+            <ComponentRef Id="WorkbenchDesktopShortcut" />
             <ComponentRef Id="UpdatePath" />
         </Feature>
 

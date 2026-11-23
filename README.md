@@ -51,7 +51,7 @@ It stops at the first failed check.
 
 Insert the hardware token before running. The script pauses so you can confirm the token is inserted, then makes four separate signing calls in this order: AMD64 EXEs, ARM64 EXEs, AMD64 MSI, ARM64 MSI. Each EXE call signs `stackql.exe` and `stackql-workbench.exe` for that architecture. Expect one token password prompt per call when password caching or single logon is disabled in the token client; the client controls the prompts. See [SafeNet single logon settings](https://www.sectigo.com/knowledge-base/detail/enable-safenet-single-log-on-for-document-or-code-signing). Enter the password carefully: the token is locked out after more than 3 incorrect attempts.
 
-The script extracts both ZIPs into `bin\<architecture>\`, copies each Workbench executable there as `stackql-workbench.exe`, reads the shared version from the AMD64 `stackql.exe` and stops if it is not the StackQL release version, and stamps both `stackql.exe` files before signing either. The Workbench is not stamped: it carries its own version and icon. The script then signs the EXEs, builds and signs the AMD64 MSI, creates the AMD64 ZIP, builds and signs the ARM64 MSI, and creates the ARM64 ZIP. Each MSI installs `stackql.exe` and `stackql-workbench.exe` side by side, with a StackQL Workbench shortcut in the Start Menu. Each ZIP contains `stackql.exe` only. It writes the outputs to `msi\`:
+The script extracts both ZIPs into `bin\<architecture>\`, copies each Workbench executable there as `stackql-workbench.exe`, reads the shared version from the AMD64 `stackql.exe` and stops if it is not the StackQL release version, and stamps both `stackql.exe` files before signing either. The Workbench is not stamped: it carries its own version and icon. The script then signs the EXEs, builds and signs the AMD64 MSI, creates the AMD64 ZIP, builds and signs the ARM64 MSI, and creates the ARM64 ZIP. Each MSI installs `stackql.exe` and `stackql-workbench.exe` side by side, with StackQL Command Shell and StackQL Workbench shortcuts in the Start Menu and on the desktop. The Workbench shortcuts use `inc\stackql-workbench.ico`, the Workbench icon with the AI Allowance starburst in the upper right corner. Each ZIP contains `stackql.exe` only. It writes the outputs to `msi\`:
 
 - `stackql_<version>_windows_amd64.msi` and `stackql_windows_amd64.msi`
 - `stackql_<version>_windows_amd64.zip` and `stackql_windows_amd64.zip`
@@ -130,7 +130,7 @@ choco uninstall stackql
 | `release.ps1` | Step 2: uploads the MSI and ZIP assets and their `.sha256` sidecars to the GitHub release |
 | `publish-prep.ps1` | Step 3: updates the Chocolatey package for a release |
 | `stackql.wxs`, `en-us.wxl` | WiX source for the MSI |
-| `inc\` | Files bundled into the MSI: EULA, icon, installer images, command shell launcher |
+| `inc\` | Files bundled into the MSI: EULA, icons, installer images, command shell launcher |
 | `lib\` | Build tools: `rcedit` (version stamping) and `signtool` (Authenticode signing) |
 | `chocolatey\` | Chocolatey package source: `stackql.nuspec` and `tools\` |
 | `.github\workflows\chocolatey-publish.yml` | Publishes the Chocolatey package on push to `main` |
